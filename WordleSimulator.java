@@ -7,31 +7,28 @@ public class WordleSimulator {
     static Word w;
     static String filePath = "WordSets/wordle.txt";
 
-    public static ArrayList<String> words=new ArrayList<String>();
 
     public static boolean wordCheck(String word, String recommendedWord){
         for (int i = 0; i < recommendedWord.length(); i++){
+
+            if (recommendedWord.charAt(i) == word.charAt(i))
+                w.greens.put(word.charAt(i), i);
+
             boolean grey[] = new boolean[5];
             for (int j = 0; j < word.length(); j++){
-                if (recommendedWord.charAt(i) == word.charAt(j)){
+                if (recommendedWord.charAt(i) == word.charAt(j) && i != j){
+                        int index;
+                    
+                        if(w.yellow.contains(recommendedWord.charAt(i)))
+                            index = w.yellow.indexOf(recommendedWord.charAt(i));
 
-                    if(i == j && !w.green.contains(word.charAt(j)) )
-                        w.green.set(j, word.charAt(j));
+                        else{
+                            index = w.yellow.size();
+                            w.yellow.add(recommendedWord.charAt(i));
+                        }
 
-                    else{
-
-                    int index;
-
-                    if(w.yellow.contains(recommendedWord.charAt(i)))
-                        index = w.yellow.indexOf(recommendedWord.charAt(i));
-
-                    else{
-                        index = w.yellow.size();
-                        w.yellow.add(recommendedWord.charAt(i));
-                    }
-
-                    w.yellowPos[index][i] = true;
-                    }
+                        w.yellowPos[index][i] = true;
+                    
                 }
                 else{
                     grey[j] = true;
@@ -44,9 +41,19 @@ public class WordleSimulator {
             if(allGrey)
                 w.grey.add(recommendedWord.charAt(i));
         }
+        for (int i = 0; i < 5; i++){
+            char greenChar = w.green.get(i);
+            if(greenChar == '\0')
+                continue;
+            
+            for (int j = 0; j < 5; j++){
+                if(greenChar == w.yellow.get(j))
+                    w.yellowPos[j][i] = false;
+            }
+        }
         return recommendedWord.equals(word);
     }
-    public static void main(String args[]){
+    public static void main(String[] args){
         w = new Word();
         try {
             BufferedReader br = new BufferedReader(new FileReader(filePath));

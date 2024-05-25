@@ -1,32 +1,40 @@
-import java.io.*; import java.util.*;
+import java.io.*; 
+import java.util.*;
+import java.util.Map.Entry;
+
 class Word{
-    ArrayList<Character> grey= new ArrayList<Character>();
-    ArrayList<Character> yellow= new ArrayList<Character>();
-    ArrayList<Character> green= new ArrayList<Character>();
-    boolean[][] yellowPos = new boolean[5][5];
-    int best;
-    int worst;
-    public Word(){
+    Set<Character> grey;
+    Map<Character,List<Integer>> yellows;
+    Map<Character, Integer> greens;
+
+    public static ArrayList<String> words;
+    {
+        words = new ArrayList<String>();
+
         try {
             BufferedReader br = new BufferedReader(new FileReader("WordSets/wordle.txt"));
             while (true) {
                 String line = br.readLine();
                 if(line == null)
                     break;
-                WordleSimulator.words.add(line);
+                words.add(line);
             }
             br.close();
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
         }
-        green.add('\0');
-        green.add('\0');
-        green.add('\0');
-        green.add('\0');
-        green.add('\0');
+
+    }
+    int best;
+    int worst;
+
+    public Word(){
+        grey = new HashSet<Character>();
+        yellows = new HashMap<>(5);
+        greens = new HashMap<>(5);
     }
 
-    boolean grayCheck(String word){
+    private boolean grayCheck(String word){
         for (int i = 0; i < 5; i++)
             if (grey.contains(word.charAt(i))) {
                 return false;
@@ -35,15 +43,17 @@ class Word{
         return true;
     }
 
-    boolean yellowCheck(String word){
-        for (int i = 0; i < yellow.size(); i++) {
+    private boolean yellowCheck(String word){
+        for(Entry<Character, List<Integer>> entry: yellows.entrySet()){
+            char key = entry.getKey();
+            List<Integer> value = entry.getValue();
             boolean charFound = false;
 
-            for (int j = 0; j < 5; j++) {
-                if (word.charAt(j) == yellow.get(i)) {
+            for (int i = 0; i < 5; i++) {
+                if (word.charAt(i) == key) {
                     charFound = true;
 
-                    if (yellowPos[i][j]) {
+                    if (value.contains(i)) {
                         return false;
                     }
                 }
@@ -55,62 +65,48 @@ class Word{
         return true;
     }
 
-    boolean greenCheck(String word){
-        boolean apply = true;
+    private boolean greenCheck(String word){
+        for (int i = 0; i < 5; i++)
+            if (i != greens.getOrDefault(word.charAt(i), i))
+                return false;
 
-        for (int i = 0; i < 5; i++) {
-            if (word.charAt(i) != green.get(i) && green.get(i) != '\0') {
-                apply = false;
-                break;
-            }
-        }
-
-        return apply;
+        return true;
     }
+
+
     String wordCheck(boolean debug){
         int charCount[] = new int[26];
         int charCountPos[][] = new int[26][5];
 
-        ArrayList<String> prevWords = WordleSimulator.words;
-        WordleSimulator.words = new ArrayList<String>();
+        ArrayList<String> prevWords = words;
+        words = new ArrayList<String>();
         for (String word : prevWords) {
-            boolean apply = true;
 
             if (debug)
                 System.out.print("");
 
-            apply = grayCheck(word);
 
-            if(apply) {
-
-                apply = yellowCheck(word);
-
-                if(apply) {
-
-                    apply = greenCheck(word);
-
-                    if (apply)
-                        WordleSimulator.words.add(word);
-                }
-            }
+            if(grayCheck(word) && yellowCheck(word) && greenCheck(word))
+                words.add(word);
+            
         }
 
-        for(String word: WordleSimulator.words) {
+        for(String word: words) {
             for (int i = 0; i < 5; i++) {
                 charCount[word.charAt(i) - 97]++;
                 charCountPos[word.charAt(i) - 97][i]++;
             }
         }
 
-        double bestWordScore = 0;
-        double worstWordScore = 99999999;
+        double bestWordScore = Integer.MIN_VALUE;
+        double worstWordScore = Integer.MAX_VALUE;
 
-        for(int i = 0; i < WordleSimulator.words.size(); i++){
+        for(int i = 0; i < words.size(); i++){
             double wordScore = 0;
             char[] prevChars = new char[5];
             for(int j = 0; j < 5; j++){
                 boolean check = true;
-                char currentChar = WordleSimulator.words.get(i).charAt(j);
+                char currentChar = words.get(i).charAt(j);
                 for(int k = 0; k < j; k++){
                     if(prevChars[k] == currentChar)
                         check = false;
@@ -128,6 +124,6 @@ class Word{
                 worst = i;
             }
         }
-        return WordleSimulator.words.get(best);
+        return words.get(best);
     }
 }

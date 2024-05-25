@@ -18,17 +18,13 @@ public class Wordle{
 
                 int index;
                 if(user != '0'){
-                    if(w.yellow.contains(user))
-                        index = w.yellow.indexOf(user);
-                    else{
-                        index = w.yellow.size();
-                        w.yellow.add(user);
-                    }
-                
                     int position;
+
                     System.out.print("Enter Position: ");
                     position = input.nextInt()-1;
-                    w.yellowPos[index][position] = true;
+
+                    w.yellows.putIfAbsent(user, new ArrayList<Integer>());
+                    w.yellows.get(user).add(position);
             }
             } while (user != '0');
             do{
@@ -37,7 +33,7 @@ public class Wordle{
                 if(user != '0'){
                     System.out.print("Enter Position: ");
                     int position = input.nextInt()-1;
-                    w.green.set(position, user);
+                    w.greens.put(user, position);
                 }
             } while (user != '0');
 
